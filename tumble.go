@@ -23,29 +23,31 @@ type APIResponse struct {
 }
 
 type Post struct {
-  // Id uint64 `json:"id"` - sometimes string, sometimes int
+  // Id uint64 `json:"id"` - sometimes returned  as string, sometimes returned as int. 
+  //                         the only way to get around this is to write your own JSON parser.
   PhotoURL1280 string `json:"photo-url-1280"`
 }
 
 var accountName string
+var userAgent string
 
 func init(){
   var helpFlag bool
 
-  flag.StringVar(&accountName, "n", "arizonanature", "account name")
+  flag.StringVar(&userAgent, "u", HTTP_USER_AGENT, "http user agent")
   flag.BoolVar(&helpFlag, "help", false, "help")
 
   flag.Parse()
 
-  if helpFlag {
+  accountName = flag.Arg(0)
+
+  if helpFlag || len(accountName) == 0 {
+    fmt.Println("Usage: tumblweed [accountname]")
     flag.PrintDefaults()
     os.Exit(0)
   }
 
-  if ! os.IsExist(accountName){
-
-  }
-
+  // convention to save files to /account name/file.jpg
   err := os.Mkdir(accountName, 0777)
 
   if err != nil {
@@ -104,7 +106,7 @@ func main(){
     
     if err != nil {
       
-      fmt.Println("error downloading photo: %v", err)
+      fmt.Printf("error downloading photo: %v\n", err)
 
       continue
     
