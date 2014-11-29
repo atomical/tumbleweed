@@ -101,25 +101,24 @@ func main(){
   bar = pb.StartNew(postsTotal)
 
   for i := range(posts) {
+    
+    outPath := filepath.Join(accountName,filepath.Base(posts[i].PhotoURL1280))
+
+    if _, err := os.Stat(outPath); ! os.IsNotExist(err) {
+      bar.Increment()
+      continue
+    }
 
     contents, err := fetchURL(posts[i].PhotoURL1280)
     
     if err != nil {
-      
       fmt.Printf("error downloading photo: %v\n", err)
-
       continue
-    
     }
 
-    outPath := filepath.Join(accountName,filepath.Base(posts[i].PhotoURL1280))
-    
     go func( outPath string, contents []byte ){
-      
       err = ioutil.WriteFile(outPath, contents, 0644)
-      
       check(err)
-
     }( outPath, contents )
 
     bar.Increment()
@@ -133,9 +132,7 @@ func fetchURL( url string ) ( []byte, error ) {
   req, err := http.NewRequest("GET", url, nil)
   
   if err != nil {
-
     return nil, errors.New(fmt.Sprintf("Could not handle request: %v", err))
-
   }
 
   req.Header.Set("User-Agent", HTTP_USER_AGENT)
@@ -145,9 +142,7 @@ func fetchURL( url string ) ( []byte, error ) {
   resp, err := httpClient.Do(req)
   
   if err != nil {
-
     return nil, errors.New(fmt.Sprintf("Could not handle request: %v", err))
-  
   }
 
   defer resp.Body.Close()
@@ -155,21 +150,16 @@ func fetchURL( url string ) ( []byte, error ) {
   body, err := ioutil.ReadAll(resp.Body)
   
   if resp.StatusCode == http.StatusNotFound {
-
     return nil, errors.New(fmt.Sprintf("Status Not Found: %v", resp.StatusCode ))
-
   }
 
   if err != nil {
-
     return nil, errors.New(fmt.Sprintf("Unknown error: %v", err ))
-
   }
 
   return body, nil 
 
 }
-
   
 func check(e error) {
     if e != nil {
